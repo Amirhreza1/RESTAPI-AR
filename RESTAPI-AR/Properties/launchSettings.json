@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "RESTAPI_AR": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7008",
+      "launchBrowser": false
+    }
+  }
+}

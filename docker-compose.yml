@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  wishlistapp:
+    image: ${DOCKER_REGISTRY-}wishlistapp
+    build:
+      context: .
+      dockerfile: WishListApp/Dockerfile

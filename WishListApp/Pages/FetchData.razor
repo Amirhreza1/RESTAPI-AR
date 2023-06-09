@@ -1,0 +1,99 @@
+﻿@page "/fetchdata"
+@using WishListApp.Data
+@using WishListApp.Models;
+@inject HttpClient Http
+
+<PageTitle>Wish List</PageTitle>
+
+<h1>Your Wish List</h1>
+
+<p>Labb 3 Azure Function</p>
+<EditForm Model="itemCreate" OnValidSubmit="HandleCreate">
+    <InputText class="form-control" @bind-Value="itemCreate.ItemName"></InputText>
+    <br/>
+    <button class="btn btn-primary" type="submit">
+        <span class="oi oi-pencil">Create</span>
+
+    </button>
+</EditForm>
+<br/>
+<br />
+
+@if (items == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Item Name</th>
+                <th>Created</th>
+                <th>Collected</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.ItemName</td>
+                    <td>@item.Created</td>
+                    <td>
+                        <input type="checkbox" class="form-check" value="@item.Collected" @onchange="eventArgs => {CheckBoxClicked(item, eventArgs.Value);}"/>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger" @onclick="eventArgs => {DeleteClicked(item);}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private WishListItem[]? items;
+    private CreateWishListItem itemCreate = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await Http.GetFromJsonAsync<WishListItem[]>("api/WishListItems");
+    }
+
+    private async Task HandleCreate()
+    {
+        var response = await Http.PostAsJsonAsync<CreateWishListItem>("api/WishListItems", itemCreate);
+        if (response.IsSuccessStatusCode)
+        {
+            await OnInitializedAsync();
+        }
+    }
+    private async Task CheckBoxClicked(WishListItem item, Object CheckValue)
+    {
+        UpdateWishListItem updateWish = new UpdateWishListItem()
+            {
+                Collected = (bool)CheckValue
+            };
+
+        var response = await Http.PutAsJsonAsync<UpdateWishListItem>($"api/WishListitems/{item.Id}", updateWish);
+        if (response.IsSuccessStatusCode)
+        {
+            await OnInitializedAsync();
+        }
+    }
+
+    private async Task DeleteClicked(WishListItem item)
+    {
+        var response = await Http.DeleteAsync($"api/WishListitems/{item.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            StateHasChanged();
+            await OnInitializedAsync();
+        }
+    }
+}
